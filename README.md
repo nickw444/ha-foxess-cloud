@@ -11,6 +11,12 @@ If you're moving to Amber for wholesale rates, you can use my referral code [`HD
 ## Screenshots
 ![FoxESS Cloud in Home Assistant](screenshot.png)
 
+| Config flow: API key | Config flow: select device |
+| --- | --- |
+| ![Config flow step 1](config_flow_1.png) | ![Config flow step 2](config_flow_2.png) |
+
+<img src="options.png" alt="Options" width="480" />
+
 ## Support the project
 - Buy me a coffee: https://buymeacoffee.com/nickw444
 - GitHub Sponsors: [Sponsor nickw444 on GitHub](https://github.com/sponsors/nickw444)
