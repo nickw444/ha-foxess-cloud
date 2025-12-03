@@ -1,0 +1,7 @@
+{
+  "name": "FoxESS Cloud",
+  "content_in_root": false,
+  "domains": ["foxess_cloud"],
+  "country": ["*"],
+  "render_readme": true
+}

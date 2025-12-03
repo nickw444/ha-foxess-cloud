@@ -1,0 +1,11 @@
+{
+  "domain": "foxess_cloud",
+  "name": "FoxESS Cloud",
+  "version": "0.1.0",
+  "documentation": "https://github.com/nickw444/ha-foxess-cloud",
+  "codeowners": ["@nickw444"],
+  "config_flow": true,
+  "requirements": ["pydantic>=2.7.0"],
+  "iot_class": "cloud_polling",
+  "integration_type": "service"
+}

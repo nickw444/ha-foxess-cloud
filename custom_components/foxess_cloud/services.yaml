@@ -1,0 +1,36 @@
+set_schedule:
+  name: Set inverter schedule
+  description: Update the scheduler configuration for a FoxESS inverter. Provide scheduler groups via `groups`; all existing schedules will be overwritten.
+  fields:
+    device_sn:
+      name: Device serial number
+      description: Target inverter serial number.
+      required: true
+      selector:
+        text:
+      example: ABC1234567
+    groups:
+      name: Scheduler groups
+      description: "List of scheduler entries (enable, start/end times, work mode: SelfUse | Feedin | Backup | ForceCharge | ForceDischarge, SOCs, power). Provide an empty list to clear all schedules. Existing schedules are overwritten."
+      required: true
+      selector:
+        object:
+      example: |
+        - enable: 1
+          startHour: 0
+          startMinute: 0
+          endHour: 6
+          endMinute: 0
+          workMode: ForceCharge
+          minSocOnGrid: 20
+          fdSoc: 80
+          fdPwr: 2000
+          maxSoc: 90
+        - enable: 1
+          startHour: 12
+          startMinute: 0
+          endHour: 15
+          endMinute: 30
+          workMode: Feedin
+          fdSoc: 30
+          fdPwr: 1000

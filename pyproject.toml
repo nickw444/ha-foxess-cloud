@@ -1,0 +1,16 @@
+[project]
+name = "ha-foxess-cloud"
+version = "0.1.0"
+description = "Home Assistant FoxESS Cloud custom component and CLI tools"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Nick Whyte" }]
+requires-python = ">=3.12"
+dependencies = [
+  "aiohttp>=3.9.0",
+  "pydantic>=2.7.0",
+  "voluptuous>=0.13.1",
+]
+
+[tool.uv]
+dev-dependencies = []

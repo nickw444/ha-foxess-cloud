@@ -1,0 +1,289 @@
+{
+  "config": {
+    "flow_title": "FoxESS Cloud",
+    "step": {
+      "user": {
+        "title": "Connect to FoxESS Cloud",
+        "description": "Enter your FoxESS Cloud API key to enable inverter data access.",
+        "data": {
+          "api_key": "API key"
+        }
+      },
+      "select_device": {
+        "title": "Select your inverter",
+        "description": "Choose the inverter to set up from your FoxESS Cloud account.",
+        "data": {
+          "device_sn": "Device"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to FoxESS Cloud. Check your network and try again.",
+      "invalid_auth": "Authentication failed. Verify your credentials and try again.",
+      "no_devices": "No inverters were found on your FoxESS Cloud account.",
+      "unknown_device": "The selected device is not available.",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "This FoxESS Cloud account is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "FoxESS Cloud options",
+        "description": "FoxESS Cloud allows up to 1,440 API calls per day (about one call per minute). Choose how often to refresh realtime inverter data. Minimum is 1 minute to stay under the limit; default is 5 minutes.",
+        "data": {
+          "realtime_update_interval": "Realtime update interval (minutes)"
+        },
+        "data_description": {
+          "realtime_update_interval": "1 minute = fastest allowed without exceeding the 1,440 calls/day cap. Set higher to reduce load; default is 5 minutes."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "scheduler_enabled": {
+        "name": "Scheduler enabled"
+      },
+      "current_fault": {
+        "name": "Current fault"
+      },
+      "schedule_dirty": {
+        "name": "Scheduler pending changes"
+      },
+      "has_battery": {
+        "name": "Has battery"
+      }
+    },
+    "sensor": {
+      "grid_consumption": {
+        "name": "Grid import"
+      },
+      "grid_consumption_power": {
+        "name": "Grid import power"
+      },
+      "feedin": {
+        "name": "Grid export"
+      },
+      "feedin_power": {
+        "name": "Grid export power"
+      },
+      "generation": {
+        "name": "Generation"
+      },
+      "generation_power": {
+        "name": "Generation power"
+      },
+      "loads": {
+        "name": "Loads"
+      },
+      "loads_power": {
+        "name": "Load power"
+      },
+      "pv_power": {
+        "name": "PV power"
+      },
+      "charge_energy_total": {
+        "name": "Battery charge energy"
+      },
+      "discharge_energy_total": {
+        "name": "Battery discharge energy"
+      },
+      "pv_energy_total": {
+        "name": "PV energy total"
+      },
+      "energy_throughput": {
+        "name": "Energy throughput"
+      },
+      "battery_soc": {
+        "name": "Battery state of charge"
+      },
+      "pv1_voltage": {
+        "name": "PV1 voltage"
+      },
+      "pv1_current": {
+        "name": "PV1 current"
+      },
+      "pv1_power": {
+        "name": "PV1 power"
+      },
+      "pv2_voltage": {
+        "name": "PV2 voltage"
+      },
+      "pv2_current": {
+        "name": "PV2 current"
+      },
+      "pv2_power": {
+        "name": "PV2 power"
+      },
+      "pv3_voltage": {
+        "name": "PV3 voltage"
+      },
+      "pv3_current": {
+        "name": "PV3 current"
+      },
+      "pv3_power": {
+        "name": "PV3 power"
+      },
+      "pv4_voltage": {
+        "name": "PV4 voltage"
+      },
+      "pv4_current": {
+        "name": "PV4 current"
+      },
+      "pv4_power": {
+        "name": "PV4 power"
+      },
+      "eps_power": {
+        "name": "EPS power"
+      },
+      "eps_current": {
+        "name": "EPS current"
+      },
+      "eps_voltage": {
+        "name": "EPS voltage"
+      },
+      "eps_power_r": {
+        "name": "EPS power R"
+      },
+      "grid_voltage": {
+        "name": "Grid voltage"
+      },
+      "grid_frequency": {
+        "name": "Grid frequency"
+      },
+      "r_current": {
+        "name": "RCurrent"
+      },
+      "r_power": {
+        "name": "RPower"
+      },
+      "ambient_temperature": {
+        "name": "Ambient temperature"
+      },
+      "inverter_temperature": {
+        "name": "Inverter temperature"
+      },
+      "battery_temperature": {
+        "name": "Battery temperature"
+      },
+      "inverter_battery_voltage": {
+        "name": "Inv battery voltage"
+      },
+      "inverter_battery_current": {
+        "name": "Inv battery current"
+      },
+      "inverter_battery_power": {
+        "name": "Inv battery power"
+      },
+      "battery_charge_power": {
+        "name": "Battery charge power"
+      },
+      "battery_discharge_power": {
+        "name": "Battery discharge power"
+      },
+      "battery_voltage": {
+        "name": "Battery voltage"
+      },
+      "battery_current": {
+        "name": "Battery current"
+      },
+      "meter_power": {
+        "name": "Meter power"
+      },
+      "meter_power_2": {
+        "name": "Meter power 2"
+      },
+      "residual_energy": {
+        "name": "Residual energy"
+      },
+      "running_state": {
+        "name": "Running state"
+      },
+      "battery_status": {
+        "name": "Battery status"
+      },
+      "battery_status_v2": {
+        "name": "Battery status v2"
+      },
+      "current_fault_count": {
+        "name": "Current fault count"
+      },
+      "device_detail": {
+        "name": "Device detail"
+      },
+      "battery_soh": {
+        "name": "Battery state of health"
+      },
+      "last_update_time": {
+        "name": "Real time data last update"
+      },
+      "api_calls_24h": {
+        "name": "API calls (last 24h)"
+      },
+      "battery_capacity_total": {
+        "name": "Battery capacity total"
+      },
+      "inverter_capacity": {
+        "name": "Inverter capacity"
+      }
+    },
+    "number": {
+      "export_limit": {
+        "name": "Export limit"
+      },
+      "min_soc": {
+        "name": "Min SoC"
+      },
+      "min_soc_on_grid": {
+        "name": "Min SoC (On-grid)"
+      },
+      "max_soc": {
+        "name": "Max SoC"
+      },
+      "scheduler_min_soc_on_grid": {
+        "name": "Scheduler min SoC (on-grid)"
+      },
+      "scheduler_fd_soc": {
+        "name": "Scheduler FD SoC"
+      },
+      "scheduler_fd_pwr": {
+        "name": "Scheduler FD power"
+      },
+      "scheduler_max_soc": {
+        "name": "Scheduler max SoC"
+      }
+    },
+    "select": {
+      "schedule_work_mode": {
+        "name": "Scheduler work mode"
+      }
+    },
+    "button": {
+      "refresh_realtime": {
+        "name": "Refresh real-time data"
+      },
+      "override_schedule": {
+        "name": "Set schedule"
+      },
+      "restore_scheduler": {
+        "name": "Restore scheduler values"
+      }
+    },
+    "switch": {
+      "scheduler_enable": {
+        "name": "Scheduler enable"
+      }
+    },
+    "time": {
+      "scheduler_start_time": {
+        "name": "Scheduler start time"
+      },
+      "scheduler_end_time": {
+        "name": "Scheduler end time"
+      }
+    }
+  }
+}
