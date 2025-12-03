@@ -13,8 +13,7 @@ If you're moving to Amber for wholesale rates, you can use my referral code [`HD
 
 ## Support the project
 - Buy me a coffee: https://buymeacoffee.com/nickw444
-- GitHub Sponsors:
-  <iframe src="https://github.com/sponsors/nickw444/card" title="Sponsor nickw444" height="225" width="600" style="border: 0;"></iframe>
+- GitHub Sponsors: [Sponsor nickw444 on GitHub](https://github.com/sponsors/nickw444)
 
 ## Tested hardware
 - FoxESS KH10
