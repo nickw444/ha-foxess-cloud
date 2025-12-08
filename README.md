@@ -84,6 +84,12 @@ If you're moving to Amber for wholesale rates, you can use my referral code [`HD
 
 <img src="export_limit.png" alt="Export limit number entity" width="400" />
 
+## Work mode
+- Exposed as a Select entity backed by the `WorkMode` device setting (options: SelfUse, Feedin, Backup, PeakShaving).
+- Enabled by default with a 15-minute poll interval.
+- ForceCharge and ForceDischarge aren't supported on this entity; set them via a schedule instead.
+- When a schedule is active, FoxESS Cloud returns `error code 44096: Unsupported function code; result=None` for work mode updates; disable the schedule first, then change work mode.
+
 ## Scheduler
 - UI staging supports a single scheduler slot. Set the desired parameters (work mode, times, SOC/power limits) using the staging entities, then click the **Set Schedule** button entity to send it.
 - The `foxess_cloud.set_schedule` service accepts multiple groups in one call (see example above). When you need more than one slot, call the service with the `groups` list. An empty list clears all schedules.

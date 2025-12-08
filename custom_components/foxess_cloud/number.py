@@ -6,6 +6,7 @@ from datetime import timedelta
 
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import PERCENTAGE, UnitOfPower
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -38,7 +39,7 @@ async def async_setup_entry(
             device_info=device_info,
             setting_key="ExportLimit",
             translation_key="export_limit",
-            native_unit_of_measurement=None,
+            native_unit_of_measurement=UnitOfPower.WATT,
             native_min_value=0,
             native_max_value=30000,
             icon="mdi:export-variant",
@@ -49,7 +50,7 @@ async def async_setup_entry(
             device_info=device_info,
             setting_key="MinSoc",
             translation_key="min_soc",
-            native_unit_of_measurement="%",
+            native_unit_of_measurement=PERCENTAGE,
             native_min_value=0,
             native_max_value=100,
             icon="mdi:battery-arrow-down",
@@ -60,7 +61,7 @@ async def async_setup_entry(
             device_info=device_info,
             setting_key="MinSocOnGrid",
             translation_key="min_soc_on_grid",
-            native_unit_of_measurement="%",
+            native_unit_of_measurement=PERCENTAGE,
             native_min_value=0,
             native_max_value=100,
             icon="mdi:battery-arrow-down-outline",
@@ -71,7 +72,7 @@ async def async_setup_entry(
             device_info=device_info,
             setting_key="MaxSoc",
             translation_key="max_soc",
-            native_unit_of_measurement="%",
+            native_unit_of_measurement=PERCENTAGE,
             native_min_value=0,
             native_max_value=100,
             icon="mdi:battery-arrow-up",
@@ -79,57 +80,58 @@ async def async_setup_entry(
     ]
 
     # Scheduler numbers (single schedule)
-    coord: FoxESSCloudSchedulerCoordinator = entry.runtime_data.scheduler_coordinator
-    scheduler_entities = [
-        FoxESSScheduleNumber(
-            coordinator=coord,
-            device_sn=device_sn,
-            device_info=device_info,
-            key="min_soc_on_grid",
-            translation_key="scheduler_min_soc_on_grid",
-            native_unit_of_measurement="%",
-            native_min_value=0,
-            native_max_value=100,
-            icon="mdi:battery-arrow-down-outline",
-            enabled_default=True,
-        ),
-        FoxESSScheduleNumber(
-            coordinator=coord,
-            device_sn=device_sn,
-            device_info=device_info,
-            key="fd_soc",
-            translation_key="scheduler_fd_soc",
-            native_unit_of_measurement="%",
-            native_min_value=0,
-            native_max_value=100,
-            icon="mdi:battery-arrow-up-outline",
-            enabled_default=True,
-        ),
-        FoxESSScheduleNumber(
-            coordinator=coord,
-            device_sn=device_sn,
-            device_info=device_info,
-            key="fd_pwr",
-            translation_key="scheduler_fd_pwr",
-            native_unit_of_measurement="W",
-            native_min_value=0,
-            native_max_value=30000,
-            icon="mdi:flash",
-            enabled_default=True,
-        ),
-        FoxESSScheduleNumber(
-            coordinator=coord,
-            device_sn=device_sn,
-            device_info=device_info,
-            key="max_soc",
-            translation_key="scheduler_max_soc",
-            native_unit_of_measurement="%",
-            native_min_value=0,
-            native_max_value=100,
-            icon="mdi:battery-high",
-            enabled_default=True,
-        ),
-    ]
+    scheduler_entities: list[FoxESSScheduleNumber] = []
+    if coord := entry.runtime_data.scheduler_coordinator:
+        scheduler_entities = [
+            FoxESSScheduleNumber(
+                coordinator=coord,
+                device_sn=device_sn,
+                device_info=device_info,
+                key="min_soc_on_grid",
+                translation_key="scheduler_min_soc_on_grid",
+                native_unit_of_measurement=PERCENTAGE,
+                native_min_value=0,
+                native_max_value=100,
+                icon="mdi:battery-arrow-down-outline",
+                enabled_default=True,
+            ),
+            FoxESSScheduleNumber(
+                coordinator=coord,
+                device_sn=device_sn,
+                device_info=device_info,
+                key="fd_soc",
+                translation_key="scheduler_fd_soc",
+                native_unit_of_measurement=PERCENTAGE,
+                native_min_value=0,
+                native_max_value=100,
+                icon="mdi:battery-arrow-up-outline",
+                enabled_default=True,
+            ),
+            FoxESSScheduleNumber(
+                coordinator=coord,
+                device_sn=device_sn,
+                device_info=device_info,
+                key="fd_pwr",
+                translation_key="scheduler_fd_pwr",
+                native_unit_of_measurement=UnitOfPower.WATT,
+                native_min_value=0,
+                native_max_value=30000,
+                icon="mdi:flash",
+                enabled_default=True,
+            ),
+            FoxESSScheduleNumber(
+                coordinator=coord,
+                device_sn=device_sn,
+                device_info=device_info,
+                key="max_soc",
+                translation_key="scheduler_max_soc",
+                native_unit_of_measurement=PERCENTAGE,
+                native_min_value=0,
+                native_max_value=100,
+                icon="mdi:battery-high",
+                enabled_default=True,
+            ),
+        ]
 
     # Polling entities: let SCAN_INTERVAL drive regular updates; initial fetch is handled in async_added_to_hass.
     async_add_entities(setting_entities)

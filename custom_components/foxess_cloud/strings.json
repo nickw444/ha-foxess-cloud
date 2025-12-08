@@ -259,6 +259,9 @@
     "select": {
       "schedule_work_mode": {
         "name": "Scheduler work mode"
+      },
+      "work_mode": {
+        "name": "Work mode"
       }
     },
     "button": {

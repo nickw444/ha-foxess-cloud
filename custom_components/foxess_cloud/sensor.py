@@ -20,6 +20,7 @@ from homeassistant.const import (
     UnitOfFrequency,
     UnitOfPower,
     UnitOfTemperature,
+    PERCENTAGE,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
@@ -514,9 +515,10 @@ async def async_setup_entry(
                 device_sn=device_sn,
                 device_info=device_info,
                 variable_key="SoC",
-                translation_key="battery_soc",                device_class=SensorDeviceClass.BATTERY,
+                translation_key="battery_soc",
+                device_class=SensorDeviceClass.BATTERY,
                 state_class=SensorStateClass.MEASUREMENT,
-                native_unit_of_measurement="%",
+                native_unit_of_measurement=PERCENTAGE,
                 value_converter=float,
             ),
             FoxESSRealTimeSensor(
@@ -580,9 +582,10 @@ async def async_setup_entry(
                 device_sn=device_sn,
                 device_info=device_info,
                 variable_key="SOH",
-                translation_key="battery_soh",                device_class=SensorDeviceClass.BATTERY,
+                translation_key="battery_soh",
+                device_class=SensorDeviceClass.BATTERY,
                 state_class=SensorStateClass.MEASUREMENT,
-                native_unit_of_measurement="%",
+                native_unit_of_measurement=PERCENTAGE,
                 value_converter=float,
             ),
             FoxESSRealTimeSensor(
