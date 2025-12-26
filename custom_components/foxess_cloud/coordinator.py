@@ -41,11 +41,14 @@ class FoxESSCloudRealTimeCoordinator(DataUpdateCoordinator[RealTimeSnapshot]):
         hass: HomeAssistant,
         client: FoxESSCloudClient,
         config_entry: ConfigEntry,
+        *,
+        variables: list[str] | None = None,
     ) -> None:
         """Initialize the coordinator."""
 
         self._client = client
         self._device_sn: str = config_entry.data[CONF_DEVICE_SN]
+        self._variables = variables
 
         update_interval_minutes = self._validated_update_interval(
             config_entry.options.get(
@@ -67,61 +70,7 @@ class FoxESSCloudRealTimeCoordinator(DataUpdateCoordinator[RealTimeSnapshot]):
         try:
             return await self._client.async_get_real_time_snapshot(
                 sn=self._device_sn,
-                variables=[
-                    "pvPower",
-                    "pv1Volt",
-                    "pv1Current",
-                    "pv1Power",
-                    "pv2Volt",
-                    "pv2Current",
-                    "pv2Power",
-                    "pv3Volt",
-                    "pv3Current",
-                    "pv3Power",
-                    "pv4Volt",
-                    "pv4Current",
-                    "pv4Power",
-                    "epsPower",
-                    "epsCurrentR",
-                    "epsVoltR",
-                    "epsPowerR",
-                    "RCurrent",
-                    "RVolt",
-                    "RFreq",
-                    "RPower",
-                    "ambientTemperation",
-                    "invTemperation",
-                    "batTemperature",
-                    "loadsPower",
-                    "generationPower",
-                    "feedinPower",
-                    "gridConsumptionPower",
-                    "invBatVolt",
-                    "invBatCurrent",
-                    "invBatPower",
-                    "batChargePower",
-                    "batDischargePower",
-                    "batVolt",
-                    "batCurrent",
-                    "meterPower",
-                    "meterPower2",
-                    "SoC",
-                    "generation",
-                    "ResidualEnergy",
-                    "runningState",
-                    "batStatus",
-                    "batStatusV2",
-                    "currentFault",
-                    "currentFaultCount",
-                    "energyThroughput",
-                    "SOH",
-                    "gridConsumption",
-                    "loads",
-                    "feedin",
-                    "chargeEnergyToTal",
-                    "dischargeEnergyToTal",
-                    "PVEnergyTotal",
-                ],
+                variables=self._variables,
             )
         except FoxESSCloudAuthError as err:
             raise UpdateFailed("Authentication failed while updating FoxESS Cloud data") from err

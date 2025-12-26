@@ -13,16 +13,16 @@ from homeassistant.helpers import service
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import DeviceInfo
 
+from .api_call_tracker import ApiCallTracker
 from .api_client import FoxESSCloudClient
 from .api_client.models import InverterDetail, SchedulerGroup, SchedulerSetRequest
-from .api_call_tracker import ApiCallTracker
+from .const import CONF_API_KEY, CONF_DEVICE_SN, DOMAIN, PLATFORMS, SERVICE_SET_SCHEDULE
 from .coordinator import (
     FoxESSCloudDeviceDetailCoordinator,
     FoxESSCloudRealTimeCoordinator,
     FoxESSCloudSchedulerCoordinator,
 )
-from .const import CONF_API_KEY, CONF_DEVICE_SN, DOMAIN, PLATFORMS, SERVICE_SET_SCHEDULE
-
+from .profiles import DeviceSeriesProfile, select_device_series_profile
 
 type FoxESSCloudConfigEntry = ConfigEntry["FoxESSCloudRuntimeData"]
 
@@ -39,6 +39,7 @@ class FoxESSCloudRuntimeData:
     api_call_tracker: ApiCallTracker
     device_detail_coordinator: FoxESSCloudDeviceDetailCoordinator
     device_info: DeviceInfo
+    device_series_profile: DeviceSeriesProfile
     realtime_coordinator: FoxESSCloudRealTimeCoordinator
     scheduler_coordinator: FoxESSCloudSchedulerCoordinator | None
 
@@ -65,14 +66,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: FoxESSCloudConfigEntry) 
         client=client,
         config_entry=entry,
     )
+    await device_detail_coordinator.async_config_entry_first_refresh()
+
+    detail = device_detail_coordinator.data
+    device_series_profile = select_device_series_profile(detail)
+    product_type = detail.product_type if detail is not None else None
+    device_type = detail.device_type if detail is not None else None
+    _LOGGER.info(
+        "Using device series profile %s for %s (product_type=%s, device_type=%s)",
+        device_series_profile.profile_id,
+        entry.data[CONF_DEVICE_SN],
+        product_type,
+        device_type,
+    )
     realtime_coordinator = FoxESSCloudRealTimeCoordinator(
         hass=hass,
         client=client,
         config_entry=entry,
+        variables=device_series_profile.realtime_variables(),
     )
-    scheduler_coordinator: FoxESSCloudSchedulerCoordinator | None = None
-
-    await device_detail_coordinator.async_config_entry_first_refresh()
     await realtime_coordinator.async_config_entry_first_refresh()
 
     device_info = _device_info_from_detail(
@@ -80,6 +92,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: FoxESSCloudConfigEntry) 
         detail=device_detail_coordinator.data,
     )
 
+    scheduler_coordinator: FoxESSCloudSchedulerCoordinator | None = None
     has_scheduler = True
     if device_detail_coordinator.data and device_detail_coordinator.data.function is not None:
         has_scheduler = bool(device_detail_coordinator.data.function.get("scheduler"))
@@ -98,6 +111,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: FoxESSCloudConfigEntry) 
         api_call_tracker=api_call_tracker,
         device_detail_coordinator=device_detail_coordinator,
         device_info=device_info,
+        device_series_profile=device_series_profile,
         realtime_coordinator=realtime_coordinator,
         scheduler_coordinator=scheduler_coordinator,
     )

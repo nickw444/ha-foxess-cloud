@@ -202,7 +202,7 @@ class FoxESSCloudClient:
             sns=[sn], variables=variables, api_version=api_version
         )
         if not data:
-            return RealTimeSnapshot(device_sn=sn, time=None, variables={})
+            return RealTimeSnapshot(device_sn=sn, time=None)
         return RealTimeSnapshot.from_realtime(data[0])
 
     async def async_get_scheduler(self, sn: str) -> SchedulerInfo:
