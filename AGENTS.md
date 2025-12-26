@@ -4,6 +4,7 @@
 - Project layout:
   - `custom_components/foxess_cloud/` – Home Assistant integration code.
   - `custom_components/foxess_cloud/api_client/` – FoxESS Cloud HTTP client and Pydantic models.
+  - `custom_components/foxess_cloud/profiles/` – device series profiles (series-specific entities and variable mapping).
   - `AGENTS.md` – contributor instructions and integration guidelines.
 - Home Assistant patterns: async only, config-flow required, unique IDs on entities, runtime data stored on the config entry, and coordinators for polling. Strings belong in `strings.json` and `translations/`; services in `services.yaml`; update `PLATFORMS` when adding entities.
 - Development notes:

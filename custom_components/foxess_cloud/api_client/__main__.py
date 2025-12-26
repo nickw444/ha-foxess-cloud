@@ -1,7 +1,7 @@
 """Minimal CLI for manual FoxESS Cloud API testing.
 
 Usage examples (from repo root):
-  python config/custom_components/foxess_cloud/api_client/__main__.py \\
+  PYTHONPATH=custom_components/foxess_cloud uv run python -m api_client.__main__ \\
       --api-key YOUR_KEY list-inverters
 
 You can override the base URL for staging environments with --base-url.

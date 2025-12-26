@@ -201,40 +201,79 @@ class RealTimeSnapshot(BaseModel):
     pv4Volt: RealTimeVariable | None = None
     pv4Current: RealTimeVariable | None = None
     pv4Power: RealTimeVariable | None = None
+
     epsPower: RealTimeVariable | None = None
     epsCurrentR: RealTimeVariable | None = None
     epsVoltR: RealTimeVariable | None = None
     epsPowerR: RealTimeVariable | None = None
+    epsCurrentS: RealTimeVariable | None = None
+    epsVoltS: RealTimeVariable | None = None
+    epsPowerS: RealTimeVariable | None = None
+    epsCurrentT: RealTimeVariable | None = None
+    epsVoltT: RealTimeVariable | None = None
+    epsPowerT: RealTimeVariable | None = None
+
     RCurrent: RealTimeVariable | None = None
     RVolt: RealTimeVariable | None = None
     RFreq: RealTimeVariable | None = None
     RPower: RealTimeVariable | None = None
+    SCurrent: RealTimeVariable | None = None
+    SVolt: RealTimeVariable | None = None
+    SPower: RealTimeVariable | None = None
+    TCurrent: RealTimeVariable | None = None
+    TVolt: RealTimeVariable | None = None
+    TPower: RealTimeVariable | None = None
+
     ambientTemperation: RealTimeVariable | None = None
     invTemperation: RealTimeVariable | None = None
+
     batTemperature: RealTimeVariable | None = None
+    batTemperature_1: RealTimeVariable | None = None
+
     loadsPower: RealTimeVariable | None = None
+    loadsPowerR: RealTimeVariable | None = None
+    loadsPowerS: RealTimeVariable | None = None
+    loadsPowerT: RealTimeVariable | None = None
+
     generationPower: RealTimeVariable | None = None
     feedinPower: RealTimeVariable | None = None
     gridConsumptionPower: RealTimeVariable | None = None
+
     invBatVolt: RealTimeVariable | None = None
     invBatCurrent: RealTimeVariable | None = None
     invBatPower: RealTimeVariable | None = None
+    invBatPower_1: RealTimeVariable | None = None
+
     batChargePower: RealTimeVariable | None = None
     batDischargePower: RealTimeVariable | None = None
+
     batVolt: RealTimeVariable | None = None
+    batVolt_1: RealTimeVariable | None = None
     batCurrent: RealTimeVariable | None = None
+    batCurrent_1: RealTimeVariable | None = None
+
     meterPower: RealTimeVariable | None = None
     meterPower2: RealTimeVariable | None = None
+    meterPowerR: RealTimeVariable | None = None
+    meterPowerS: RealTimeVariable | None = None
+    meterPowerT: RealTimeVariable | None = None
+
     SoC: RealTimeVariable | None = None
+    SoC_1: RealTimeVariable | None = None
+
     generation: RealTimeVariable | None = None
     ResidualEnergy: RealTimeVariable | None = None
     runningState: RealTimeVariable | None = None
+
     batStatus: RealTimeVariable | None = None
     batStatusV2: RealTimeVariable | None = None
+
     currentFault: RealTimeVariable | None = None
     currentFaultCount: RealTimeVariable | None = None
+
     energyThroughput: RealTimeVariable | None = None
     SOH: RealTimeVariable | None = None
+
     gridConsumption: RealTimeVariable | None = None
     loads: RealTimeVariable | None = None
     feedin: RealTimeVariable | None = None

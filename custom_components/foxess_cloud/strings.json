@@ -68,6 +68,15 @@
       "loads_power": {
         "name": "Load power"
       },
+      "loads_power_r": {
+        "name": "Load power R"
+      },
+      "loads_power_s": {
+        "name": "Load power S"
+      },
+      "loads_power_t": {
+        "name": "Load power T"
+      },
       "pv_power": {
         "name": "PV power"
       },
@@ -131,11 +140,35 @@
       "eps_voltage": {
         "name": "EPS voltage"
       },
+      "eps_current_s": {
+        "name": "EPS current S"
+      },
+      "eps_voltage_s": {
+        "name": "EPS voltage S"
+      },
+      "eps_power_s": {
+        "name": "EPS power S"
+      },
+      "eps_current_t": {
+        "name": "EPS current T"
+      },
+      "eps_voltage_t": {
+        "name": "EPS voltage T"
+      },
+      "eps_power_t": {
+        "name": "EPS power T"
+      },
       "eps_power_r": {
         "name": "EPS power R"
       },
       "grid_voltage": {
         "name": "Grid voltage"
+      },
+      "grid_voltage_s": {
+        "name": "Grid voltage S"
+      },
+      "grid_voltage_t": {
+        "name": "Grid voltage T"
       },
       "grid_frequency": {
         "name": "Grid frequency"
@@ -143,8 +176,20 @@
       "r_current": {
         "name": "RCurrent"
       },
+      "s_current": {
+        "name": "SCurrent"
+      },
+      "t_current": {
+        "name": "TCurrent"
+      },
       "r_power": {
         "name": "RPower"
+      },
+      "s_power": {
+        "name": "SPower"
+      },
+      "t_power": {
+        "name": "TPower"
       },
       "ambient_temperature": {
         "name": "Ambient temperature"
@@ -181,6 +226,15 @@
       },
       "meter_power_2": {
         "name": "Meter power 2"
+      },
+      "meter_power_r": {
+        "name": "Meter power R"
+      },
+      "meter_power_s": {
+        "name": "Meter power S"
+      },
+      "meter_power_t": {
+        "name": "Meter power T"
       },
       "residual_energy": {
         "name": "Residual energy"

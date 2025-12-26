@@ -22,11 +22,15 @@ If you're moving to Amber for wholesale rates, you can use my referral code [`HD
 - GitHub Sponsors: [Sponsor nickw444 on GitHub](https://github.com/sponsors/nickw444)
 
 ## Tested hardware
-- FoxESS KH10
+- KH
+  - FoxESS KH10
+- H3-G2
+  - FoxESS H3-15.0-Smart
 
 ## Highlights
 - Guided config flow: paste your FoxESS Cloud API key, then pick the inverter from your account.
 - Real-time telemetry exposed as sensors: PV strings, grid voltage/frequency, load/feed-in, battery SoC/temperature/power, energy totals, and diagnostics (last update, raw device detail, API call counter, running state, fault info).
+- Supports multiple inverter series with different realtime variable sets (e.g. KH and H3), including H3 per-phase (R/S/T) telemetry when available.
 - Scheduler control: staging entities (select/number/time/button/switch) to adjust work mode and times, with binary sensors for scheduler enabled/dirty state when supported.
 - Device settings: numbers for export limit and battery SoC ranges.
 - Integration service `foxess_cloud.set_schedule` to push scheduler groups to the inverter; overwrites existing schedules.
@@ -51,7 +55,7 @@ If you're moving to Amber for wholesale rates, you can use my referral code [`HD
    - FoxESS Cloud rate limit is 1,440 API calls per day (~1 call/min). Keep the realtime interval at 1 minute or higher to stay under the limit; use longer intervals if other apps (e.g., Amber, Octopus Energy) are also using your API key.
 
 ## Entities and services
-- Sensors cover PV string voltage/current/power, grid measurements, battery state of charge/temperature/power, load/generation/feed-in totals, and diagnostic helpers.
+- Sensors cover PV string voltage/current/power, grid measurements, battery state of charge/temperature/power, load/generation/feed-in totals, and diagnostic helpers. For 3‑phase inverters (e.g. H3 series), additional per‑phase (R/S/T) sensors are available (disabled by default).
 - Binary sensors report scheduler enabled/dirty status (if supported), battery presence, and current fault state.
 - Select/number/time/button/switch entities stage scheduler parameters before sending them.
 - Service `foxess_cloud.set_schedule` writes scheduler groups to the inverter. Payload example (two groups):
