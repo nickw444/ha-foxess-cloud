@@ -21,6 +21,14 @@ WORK_MODES = [
     "Backup",
     "PeakShaving",
 ]
+SCHEDULE_WORK_MODES = [
+    "SelfUse",
+    "Feedin",
+    "Backup",
+    "PeakShaving",
+    "ForceCharge",
+    "ForceDischarge",
+]
 
 SCAN_INTERVAL = timedelta(minutes=15)
 
@@ -117,7 +125,7 @@ class FoxESSScheduleWorkModeSelect(CoordinatorEntity[FoxESSCloudSchedulerCoordin
     """Select for staging scheduler work mode."""
 
     _attr_has_entity_name = True
-    _attr_options = WORK_MODES
+    _attr_options = SCHEDULE_WORK_MODES
     _attr_translation_key = "schedule_work_mode"
 
     def __init__(
