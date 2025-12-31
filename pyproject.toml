@@ -13,4 +13,24 @@ dependencies = [
 ]
 
 [tool.uv]
-dev-dependencies = []
+dev-dependencies = [
+    "homeassistant-stubs",
+    "pyright",
+    "ruff>=0.14.10",
+]
+
+[tool.ruff]
+target-version = "py313"
+
+[tool.pyright]
+pythonVersion = "3.13"
+typeCheckingMode = "basic"
+reportMissingTypeStubs = "none"
+reportMissingImports = "none"
+reportAttributeAccessIssue = "none"
+reportCallIssue = "none"
+reportArgumentType = "none"
+reportReturnType = "none"
+venvPath = "."
+venv = ".venv"
+include = ["custom_components/foxess_cloud"]
