@@ -105,6 +105,7 @@ If you're moving to Amber for wholesale rates, you can use my referral code [`HD
 ## Developing / API client CLI
 - Install deps with `uv sync`.
 - Lint with ruff: `uv run ruff check .`.
+- Typecheck with pyright: `uv run pyright`.
 - List available CLI commands: `PYTHONPATH=custom_components/foxess_cloud uv run python -m api_client.__main__ --help`.
 - Example: list inverters with `PYTHONPATH=custom_components/foxess_cloud uv run python -m api_client.__main__ --api-key YOUR_KEY list-inverters`.
 - The CLI runs outside Home Assistant for quick FoxESS Cloud API checks (settings, realtime, scheduler).
