@@ -12,19 +12,6 @@ from typing import Any, Awaitable, Callable
 
 from aiohttp import ClientResponseError, ClientSession
 
-_SETTING_KEYS = {
-    "exportlimit": "ExportLimit",
-    "minsoc": "MinSoc",
-    "minsocongrid": "MinSocOnGrid",
-    "maxsoc": "MaxSoc",
-    "gridcode": "GridCode",
-    "workmode": "WorkMode",
-    "activepowerlimit": "ActivePowerLimit",
-    "exportlimitpower": "ExportLimitPower",
-    "epsoutput": "EpsOutPut",
-    "ecomode": "ECOMode",
-}
-
 from .errors import (
     FoxESSCloudApiError,
     FoxESSCloudAuthError,
@@ -42,8 +29,20 @@ from .models import (
     SchedulerInfo,
     RealTimeSnapshot,
     RealTimeData,
-    RealTimeVariable,
 )
+
+_SETTING_KEYS = {
+    "exportlimit": "ExportLimit",
+    "minsoc": "MinSoc",
+    "minsocongrid": "MinSocOnGrid",
+    "maxsoc": "MaxSoc",
+    "gridcode": "GridCode",
+    "workmode": "WorkMode",
+    "activepowerlimit": "ActivePowerLimit",
+    "exportlimitpower": "ExportLimitPower",
+    "epsoutput": "EpsOutPut",
+    "ecomode": "ECOMode",
+}
 
 DEFAULT_BASE_URL = "https://www.foxesscloud.com"
 DEFAULT_LANG = "en"

@@ -10,7 +10,7 @@ from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_DEVICE_SN, DOMAIN
+from .const import CONF_DEVICE_SN
 from .coordinator import (
     FoxESSCloudRealTimeCoordinator,
     FoxESSCloudSchedulerCoordinator,

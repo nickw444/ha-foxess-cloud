@@ -13,4 +13,9 @@ dependencies = [
 ]
 
 [tool.uv]
-dev-dependencies = []
+dev-dependencies = [
+    "ruff>=0.14.10",
+]
+
+[tool.ruff]
+target-version = "py313"

@@ -13,7 +13,6 @@ import argparse
 import asyncio
 import json
 import sys
-from typing import Any
 
 from aiohttp import ClientSession
 from .client import FoxESSCloudClient

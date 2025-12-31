@@ -22,7 +22,7 @@ from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_DEVICE_SN, DOMAIN
+from .const import CONF_DEVICE_SN
 from .coordinator import FoxESSCloudDeviceDetailCoordinator, FoxESSCloudRealTimeCoordinator
 from .api_call_tracker import ApiCallTracker
 

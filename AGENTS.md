@@ -14,6 +14,7 @@
   - When adding platforms, update `PLATFORMS` in `const.py` and ensure setups are forwarded in `__init__.py`.
 - Tooling:
   - Use `uv` for dependencies. `uv sync` to create the virtual env.
+  - Lint with ruff: `uv run ruff check .` (CI runs this).
   - CLI: run with `PYTHONPATH=custom_components/foxess_cloud uv run python -m api_client.__main__ --help` (keeps Home Assistant imports out). Example: `PYTHONPATH=custom_components/foxess_cloud uv run python -m api_client.__main__ --api-key YOUR_KEY list-inverters`.
 - API client rules: all FoxESS HTTP calls stay in `api_client/` behind typed methods/models. Add/extend Pydantic models (alias API field names, ignore extras), normalize inputs before calling, and keep optional fields out of payloads (`model_dump(by_alias=True, exclude_none=True)`). Respect throttling defaults and keep headers (`Token`, `Signature`, `Timestamp`, `Lang`, `Timezone`, `User-Agent`, `Connection`, `Content-Type`) intact.
 - Scheduler and settings: use `SchedulerGroup`/`SchedulerSetRequest` for schedules and `SettingItem`/`SettingWriteResult` for device settings. Staging state lives on the scheduler coordinator; keep HA-facing code unaware of raw payload shapes. Service `set_schedule` must validate payloads and refresh coordinators after writes.
