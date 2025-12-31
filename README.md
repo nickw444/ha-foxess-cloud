@@ -55,7 +55,7 @@ If you're moving to Amber for wholesale rates, you can use my referral code [`HD
    - FoxESS Cloud rate limit is 1,440 API calls per day (~1 call/min). Keep the realtime interval at 1 minute or higher to stay under the limit; use longer intervals if other apps (e.g., Amber, Octopus Energy) are also using your API key.
 
 ## Entities and services
-- Sensors cover PV string voltage/current/power, grid measurements, battery state of charge/temperature/power (plus status, SOH, throughput, residual energy when available), load/generation/feed-in totals, and diagnostic helpers. For 3‑phase inverters (e.g. H3 series), additional per‑phase (R/S/T) sensors are available (disabled by default).
+- Sensors cover PV string voltage/current/power, grid measurements, battery state of charge/temperature/power, load/generation/feed-in totals, and diagnostic helpers. For 3‑phase inverters (e.g. H3 series), additional per‑phase (R/S/T) sensors are available (disabled by default).
 - Binary sensors report scheduler enabled/dirty status (if supported), battery presence, and current fault state.
 - Select/number/time/button/switch entities stage scheduler parameters before sending them.
 - Service `foxess_cloud.set_schedule` writes scheduler groups to the inverter. Payload example (two groups):
@@ -104,8 +104,6 @@ If you're moving to Amber for wholesale rates, you can use my referral code [`HD
 
 ## Developing / API client CLI
 - Install deps with `uv sync`.
-- Lint with ruff: `uv run ruff check .`.
-- Typecheck with pyright: `uv run pyright`.
 - List available CLI commands: `PYTHONPATH=custom_components/foxess_cloud uv run python -m api_client.__main__ --help`.
 - Example: list inverters with `PYTHONPATH=custom_components/foxess_cloud uv run python -m api_client.__main__ --api-key YOUR_KEY list-inverters`.
 - The CLI runs outside Home Assistant for quick FoxESS Cloud API checks (settings, realtime, scheduler).
