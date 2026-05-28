@@ -123,7 +123,7 @@ class FoxESSRealTimeSensor(CoordinatorEntity[FoxESSCloudRealTimeCoordinator], Se
         device_sn: str,
         device_info: DeviceInfo,
         *,
-        variable_key: str,
+        variable_key: str | tuple[str, ...],
         translation_key: str,
         device_class: SensorDeviceClass | None = None,
         state_class: SensorStateClass | None = None,
@@ -134,10 +134,19 @@ class FoxESSRealTimeSensor(CoordinatorEntity[FoxESSCloudRealTimeCoordinator], Se
     ) -> None:
         super().__init__(coordinator)
 
-        self._variable_key = variable_key
+        # variable_key may be a single string or a tuple of fallback keys.
+        # When a tuple is given, native_value() tries each in order and uses
+        # the first one that resolves to a non-None value on the snapshot.
+        # The unique_id is locked to the FIRST key so the entity is stable
+        # across firmware variants that flip between two names (e.g. some
+        # H3 inverters report `SoC` while others report `SoC_1`).
+        if isinstance(variable_key, str):
+            self._variable_keys: tuple[str, ...] = (variable_key,)
+        else:
+            self._variable_keys = tuple(variable_key)
         self._value_converter = value_converter
 
-        self._attr_unique_id = f"{device_sn}_{variable_key}"
+        self._attr_unique_id = f"{device_sn}_{self._variable_keys[0]}"
         self._attr_translation_key = translation_key
         self._attr_device_class = device_class
         self._attr_state_class = state_class
@@ -154,11 +163,21 @@ class FoxESSRealTimeSensor(CoordinatorEntity[FoxESSCloudRealTimeCoordinator], Se
         if snapshot is None:
             return None
 
-        variable = getattr(snapshot, self._variable_key, None)
-        if variable is None:
-            return None
+        # Try each candidate key in order. The first variable whose `value`
+        # is not None wins. This lets one sensor cover firmware variants
+        # that publish under slightly different names (e.g. SoC vs SoC_1).
+        value: Any = None
+        for key in self._variable_keys:
+            variable = getattr(snapshot, key, None)
+            if variable is None:
+                continue
+            candidate = getattr(variable, "value", None)
+            if candidate is not None:
+                value = candidate
+                break
 
-        value = getattr(variable, "value", None)
+        if value is None:
+            return None
         if self._value_converter is not None and value is not None:
             try:
                 return self._value_converter(value)
