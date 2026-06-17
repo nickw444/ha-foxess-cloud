@@ -2,9 +2,7 @@
 
 Home Assistant integration for FoxESS Cloud. It reads inverter and battery telemetry and lets you apply device settings and schedules over the cloud, without needing Modbus wiring.
 
-<img src="amber_logo.webp" alt="Amber Electric" width="32" height="32" align="left" />
-
-If you're moving to Amber for wholesale rates, you can use my referral code [`HDQC97DV`](https://mates.amber.com.au/HDQC97DV?utm_source=amber&utm_medium=app&utm_campaign=AE537_Multi_Traffic_Generic&utm_term=&utm_content=referral_share_link); it helps support this project and gives you $120 off.
+If you're switching electricity retailers, [join GloBird Energy using my referral link](https://quote.globirdenergy.com.au/quote?pcode=refer&ref=LMC3UE) and we both get $50 — it helps support this project.
 
 > Why this integration? If you only need telemetry, other FoxESS integrations (e.g., [macxq/foxess-ha](https://github.com/macxq/foxess-ha)) may be enough. Use this one when you also want to control the inverter from Home Assistant by adjusting device settings and schedules via the FoxESS Cloud API.
 
