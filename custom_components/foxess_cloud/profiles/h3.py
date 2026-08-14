@@ -61,8 +61,16 @@ class H3DeviceSeriesProfile(DeviceSeriesProfile):
             "TPower",
             "ambientTemperation",
             "invTemperation",
-            # H3 devices return battery values with a `_1` suffix, but the request variable
-            # names need to be the base name (e.g. request `SoC` and receive `SoC_1`).
+            # H3 devices return battery values with a `_1` suffix on most
+            # firmware revisions; the request variable names must still be
+            # the base name (e.g. request `SoC` and receive `SoC_1`).
+            # Newer firmware (observed on H3-12.0-E with manager 1.56 /
+            # master 1.67) flips this — it publishes the value under the
+            # bare key (`SoC`, `batVolt`, `batCurrent`, `batTemperature`,
+            # `invBatPower`) and leaves the `_1` variant null. The sensor
+            # definitions below use tuple variable_keys to try the `_1`
+            # name first (preserving unique_ids for existing installs) and
+            # fall back to the bare name when that variant is null.
             "batTemperature",
             "loadsPower",
             "loadsPowerR",
@@ -490,7 +498,7 @@ class H3DeviceSeriesProfile(DeviceSeriesProfile):
                     coordinator=coordinator,
                     device_sn=device_sn,
                     device_info=device_info,
-                    variable_key="batTemperature_1",
+                    variable_key=("batTemperature_1", "batTemperature"),
                     translation_key="battery_temperature",
                     device_class=SensorDeviceClass.TEMPERATURE,
                     state_class=SensorStateClass.MEASUREMENT,
@@ -605,7 +613,7 @@ class H3DeviceSeriesProfile(DeviceSeriesProfile):
                     coordinator=coordinator,
                     device_sn=device_sn,
                     device_info=device_info,
-                    variable_key="invBatPower_1",
+                    variable_key=("invBatPower_1", "invBatPower"),
                     translation_key="inverter_battery_power",
                     entity_registry_enabled_default=False,
                     device_class=SensorDeviceClass.POWER,
@@ -639,7 +647,7 @@ class H3DeviceSeriesProfile(DeviceSeriesProfile):
                     coordinator=coordinator,
                     device_sn=device_sn,
                     device_info=device_info,
-                    variable_key="batVolt_1",
+                    variable_key=("batVolt_1", "batVolt"),
                     translation_key="battery_voltage",
                     device_class=SensorDeviceClass.VOLTAGE,
                     state_class=SensorStateClass.MEASUREMENT,
@@ -650,7 +658,7 @@ class H3DeviceSeriesProfile(DeviceSeriesProfile):
                     coordinator=coordinator,
                     device_sn=device_sn,
                     device_info=device_info,
-                    variable_key="batCurrent_1",
+                    variable_key=("batCurrent_1", "batCurrent"),
                     translation_key="battery_current",
                     device_class=SensorDeviceClass.CURRENT,
                     state_class=SensorStateClass.MEASUREMENT,
@@ -720,7 +728,7 @@ class H3DeviceSeriesProfile(DeviceSeriesProfile):
                     coordinator=coordinator,
                     device_sn=device_sn,
                     device_info=device_info,
-                    variable_key="SoC_1",
+                    variable_key=("SoC_1", "SoC"),
                     translation_key="battery_soc",
                     device_class=SensorDeviceClass.BATTERY,
                     state_class=SensorStateClass.MEASUREMENT,
