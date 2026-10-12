@@ -9,6 +9,7 @@ import voluptuous as vol
 from aiohttp import ClientSession
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import service
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import DeviceInfo
@@ -16,13 +17,30 @@ from homeassistant.helpers.entity import DeviceInfo
 from .api_call_tracker import ApiCallTracker
 from .api_client import FoxESSCloudClient
 from .api_client.models import InverterDetail, SchedulerGroup, SchedulerSetRequest
-from .const import CONF_API_KEY, CONF_DEVICE_SN, DOMAIN, PLATFORMS, SERVICE_SET_SCHEDULE
+from .api_client.errors import FoxESSCloudApiError
+from .const import (
+    CONF_API_KEY,
+    CONF_DEVICE_SN,
+    DOMAIN,
+    PLATFORMS,
+    SERVICE_CLEAR_FORCE_CHARGE,
+    SERVICE_SET_FORCE_CHARGE,
+    SERVICE_SET_SCHEDULE,
+)
 from .coordinator import (
     FoxESSCloudDeviceDetailCoordinator,
     FoxESSCloudRealTimeCoordinator,
     FoxESSCloudSchedulerCoordinator,
 )
 from .profiles import DeviceSeriesProfile, select_device_series_profile
+from .scheduler_merge import (
+    DEFAULT_MAX_GROUPS,
+    FORCE_CHARGE_MODES,
+    ForceChargeWindow,
+    ScheduleMergeError,
+    merge_force_charge,
+    remove_force_charge,
+)
 
 type FoxESSCloudConfigEntry = ConfigEntry["FoxESSCloudRuntimeData"]
 
@@ -161,6 +179,37 @@ def _device_info_from_detail(
     )
 
 
+def _scheduler_runtime(hass: HomeAssistant, device_sn: str) -> FoxESSCloudRuntimeData:
+    """Return runtime data for a loaded entry whose device supports the scheduler."""
+
+    entry = next(
+        (
+            ent
+            for ent in hass.config_entries.async_entries(DOMAIN)
+            if ent.state is not None and ent.data.get(CONF_DEVICE_SN) == device_sn
+        ),
+        None,
+    )
+    if entry is None or entry.runtime_data is None:
+        raise service.ServiceValidationError("Target inverter is not configured or not loaded")
+
+    runtime: FoxESSCloudRuntimeData = entry.runtime_data
+    if runtime.scheduler_coordinator is None:
+        raise service.ServiceValidationError("Scheduler is not supported for this device")
+    return runtime
+
+
+async def _async_write_groups(
+    runtime: FoxESSCloudRuntimeData, device_sn: str, groups: list[SchedulerGroup]
+) -> None:
+    """Write scheduler groups (overwrites the inverter schedule) and refresh."""
+
+    request = SchedulerSetRequest(device_sn=device_sn, groups=groups)
+    await runtime.client.async_set_scheduler(request)
+    if runtime.scheduler_coordinator is not None:
+        await runtime.scheduler_coordinator.async_request_refresh()
+
+
 def _register_services(hass: HomeAssistant) -> None:
     """Register integration level services once."""
 
@@ -170,23 +219,7 @@ def _register_services(hass: HomeAssistant) -> None:
     async def async_handle_set_schedule(call: service.ServiceCall) -> None:
         device_sn: str = call.data[CONF_DEVICE_SN]
         group_payloads = call.data["groups"]
-
-        # Find matching config entry
-        entry = next(
-            (
-                ent
-                for ent in hass.config_entries.async_entries(DOMAIN)
-                if ent.state is not None and ent.data.get(CONF_DEVICE_SN) == device_sn
-            ),
-            None,
-        )
-        if entry is None or entry.runtime_data is None:
-            raise service.ServiceValidationError("Target inverter is not configured or not loaded")
-
-        runtime: FoxESSCloudRuntimeData = entry.runtime_data
-
-        if runtime.scheduler_coordinator is None:
-            raise service.ServiceValidationError("Scheduler is not supported for this device")
+        runtime = _scheduler_runtime(hass, device_sn)
 
         # Validate groups into SchedulerGroup models
         groups: list[SchedulerGroup] = []
@@ -196,10 +229,54 @@ def _register_services(hass: HomeAssistant) -> None:
         except Exception as err:  # noqa: BLE001
             raise service.ServiceValidationError("Invalid scheduler group payload") from err
 
-        request = SchedulerSetRequest(device_sn=device_sn, groups=groups)
+        await _async_write_groups(runtime, device_sn, groups)
 
-        await runtime.client.async_set_scheduler(request)
-        await runtime.scheduler_coordinator.async_request_refresh()
+    async def async_handle_set_force_charge(call: service.ServiceCall) -> None:
+        """Add/replace a force-charge window while keeping all other enabled groups."""
+
+        device_sn: str = call.data[CONF_DEVICE_SN]
+        runtime = _scheduler_runtime(hass, device_sn)
+
+        # Always read the live schedule so we never merge into stale data.
+        try:
+            current = await runtime.client.async_get_scheduler(device_sn)
+        except FoxESSCloudApiError as err:
+            raise service.ServiceValidationError("Could not read the current schedule") from err
+
+        min_soc_on_grid = call.data.get("min_soc_on_grid")
+        if min_soc_on_grid is None:
+            min_soc_on_grid = next(
+                (g.min_soc_on_grid for g in current.groups if g.enable == 1 and g.work_mode == "SelfUse"),
+                10,
+            )
+
+        window = ForceChargeWindow(
+            start=call.data["start_time"],
+            end=call.data["end_time"],
+            target_soc=call.data["target_soc"],
+            power=call.data["power"],
+            min_soc_on_grid=min_soc_on_grid,
+            max_soc=call.data["max_soc"],
+            work_mode=call.data["work_mode"],
+        )
+        try:
+            groups = merge_force_charge(current.groups, window, max_groups=max(len(current.groups), DEFAULT_MAX_GROUPS))
+        except ScheduleMergeError as err:
+            raise service.ServiceValidationError(str(err)) from err
+
+        await _async_write_groups(runtime, device_sn, groups)
+
+    async def async_handle_clear_force_charge(call: service.ServiceCall) -> None:
+        """Remove force-charge windows while keeping all other enabled groups."""
+
+        device_sn: str = call.data[CONF_DEVICE_SN]
+        runtime = _scheduler_runtime(hass, device_sn)
+        try:
+            current = await runtime.client.async_get_scheduler(device_sn)
+        except FoxESSCloudApiError as err:
+            raise service.ServiceValidationError("Could not read the current schedule") from err
+
+        await _async_write_groups(runtime, device_sn, remove_force_charge(current.groups))
 
     schema = vol.Schema(
         {
@@ -207,10 +284,35 @@ def _register_services(hass: HomeAssistant) -> None:
             vol.Required("groups"): vol.All([dict]),
         }
     )
+    force_charge_schema = vol.Schema(
+        {
+            vol.Required(CONF_DEVICE_SN): str,
+            vol.Required("start_time"): cv.time,
+            vol.Required("end_time"): cv.time,
+            vol.Required("target_soc"): vol.All(vol.Coerce(int), vol.Range(min=10, max=100)),
+            vol.Required("power"): vol.All(vol.Coerce(float), vol.Range(min=0)),
+            vol.Optional("min_soc_on_grid"): vol.All(vol.Coerce(int), vol.Range(min=10, max=100)),
+            vol.Optional("max_soc", default=100): vol.All(vol.Coerce(int), vol.Range(min=10, max=100)),
+            vol.Optional("work_mode", default="ForceCharge"): vol.In(sorted(FORCE_CHARGE_MODES)),
+        }
+    )
+    clear_schema = vol.Schema({vol.Required(CONF_DEVICE_SN): str})
 
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SCHEDULE,
         async_handle_set_schedule,
         schema=schema,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FORCE_CHARGE,
+        async_handle_set_force_charge,
+        schema=force_charge_schema,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_CLEAR_FORCE_CHARGE,
+        async_handle_clear_force_charge,
+        schema=clear_schema,
     )

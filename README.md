@@ -32,6 +32,7 @@ If you're switching electricity retailers, [join GloBird Energy using my referra
 - Scheduler control: staging entities (select/number/time/button/switch) to adjust work mode and times, with binary sensors for scheduler enabled/dirty state when supported.
 - Device settings: numbers for export limit and battery SoC ranges.
 - Integration service `foxess_cloud.set_schedule` to push scheduler groups to the inverter; overwrites existing schedules.
+- Services `foxess_cloud.set_force_charge` / `foxess_cloud.clear_force_charge` to add or remove a ForceCharge window **without** wiping your other schedule groups (e.g. a SelfUse base).
 
 ## Requirements
 - FoxESS Cloud account with an API key.
@@ -96,6 +97,30 @@ If you're switching electricity retailers, [join GloBird Energy using my referra
 - UI staging supports a single scheduler slot. Set the desired parameters (work mode, times, SOC/power limits) using the staging entities, then click the **Set Schedule** button entity to send it.
 - The `foxess_cloud.set_schedule` service accepts multiple groups in one call (see example above). When you need more than one slot, call the service with the `groups` list. An empty list clears all schedules.
 - Warning: writing a schedule from Home Assistant overwrites all schedules on the inverter (including when sending an empty list).
+- To add a one-off charge window without losing the rest of your schedule, use `foxess_cloud.set_force_charge` instead (see below).
+
+### Force-charge window (merge, not overwrite)
+`foxess_cloud.set_force_charge` reads the live schedule from the inverter, replaces any existing `ForceCharge` group with the requested window and **keeps every other enabled group** (for example a `00:00-23:59 SelfUse` base). Empty/`Invalid` slots are dropped and windows crossing midnight are split in two. `foxess_cloud.clear_force_charge` removes the `ForceCharge` groups and keeps the rest; if nothing else remains it writes a single `00:00-23:59 SelfUse` group, because an empty `groups` list does not clear the schedule on the inverter (#6).
+
+Typical use: charge partially from the grid before an off-peak tariff ends, then clean up.
+```yaml
+# 1) e.g. at 05:55: charge to 35 % at 1.5 kW, finishing before 08:00
+action: foxess_cloud.set_force_charge
+data:
+  device_sn: ABC1234567
+  start_time: "06:43:00"
+  end_time: "07:59:00"
+  target_soc: 35        # fdSoc - charging stops here
+  power: 1500           # fdPwr in W
+  # optional: min_soc_on_grid (defaults to the SelfUse group's value or 10), max_soc (100),
+  # work_mode: ForceCharge | ForceCharge(BAT)
+
+# 2) e.g. at 08:01: remove the window so it does not repeat tomorrow
+action: foxess_cloud.clear_force_charge
+data:
+  device_sn: ABC1234567
+```
+Each call costs two API requests (read + write).
 - Example entities view:
 
 <img src="scheduler.png" alt="Scheduler entities" width="640" />
@@ -105,3 +130,4 @@ If you're switching electricity retailers, [join GloBird Energy using my referra
 - List available CLI commands: `PYTHONPATH=custom_components/foxess_cloud uv run python -m api_client.__main__ --help`.
 - Example: list inverters with `PYTHONPATH=custom_components/foxess_cloud uv run python -m api_client.__main__ --api-key YOUR_KEY list-inverters`.
 - The CLI runs outside Home Assistant for quick FoxESS Cloud API checks (settings, realtime, scheduler).
+- Run unit tests with `uv run --with pytest pytest` (scheduler merge logic lives in `scheduler_merge.py`, free of Home Assistant imports).
