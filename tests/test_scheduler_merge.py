@@ -11,6 +11,7 @@ from scheduler_merge import (
     ForceChargeWindow,
     ScheduleMergeError,
     merge_force_charge,
+    find_overlaps,
     remove_force_charge,
     split_window,
 )
@@ -47,11 +48,44 @@ def _window(**kw) -> ForceChargeWindow:
     return ForceChargeWindow(**base)
 
 
+def _spans(groups: list[SchedulerGroup]) -> list[tuple[str, int, int, int, int]]:
+    return [(g.work_mode, g.start_hour, g.start_minute, g.end_hour, g.end_minute) for g in groups]
+
+
 def test_merge_keeps_selfuse_and_replaces_existing_force_charge() -> None:
     merged = merge_force_charge(CURRENT, _window())
-    modes = [(g.work_mode, g.start_hour, g.start_minute, g.end_hour, g.end_minute) for g in merged]
-    assert modes == [("ForceCharge", 6, 30, 7, 59), ("SelfUse", 0, 0, 23, 59)]
-    assert merged[0].fd_soc == 35 and merged[0].fd_pwr == 1500
+    assert _spans(merged) == [
+        ("SelfUse", 0, 0, 6, 29),
+        ("ForceCharge", 6, 30, 7, 59),
+        ("SelfUse", 8, 0, 23, 59),
+    ]
+    assert merged[1].fd_soc == 35 and merged[1].fd_pwr == 1500
+    assert merged[0].fd_soc == 10
+
+
+def test_merge_never_overlaps() -> None:
+    assert find_overlaps(CURRENT) == [(0, 1)]
+    assert find_overlaps(merge_force_charge(CURRENT, _window())) == []
+
+
+def test_moving_window_restores_split_base_without_gaps() -> None:
+    first = merge_force_charge([_group("SelfUse", 0, 0, 23, 59)], _window(start=time(6, 0)))
+    second = merge_force_charge(first, _window(start=time(7, 0)))
+    assert _spans(second) == [
+        ("SelfUse", 0, 0, 6, 59),
+        ("ForceCharge", 7, 0, 7, 59),
+        ("SelfUse", 8, 0, 23, 59),
+    ]
+
+
+def test_remove_rejoins_split_base() -> None:
+    merged = merge_force_charge([_group("SelfUse", 0, 0, 23, 59)], _window())
+    assert _spans(remove_force_charge(merged)) == [("SelfUse", 0, 0, 23, 59)]
+
+
+def test_remove_does_not_join_different_groups() -> None:
+    current = [_group("SelfUse", 0, 0, 5, 59), _group("ForceCharge", 6, 0, 7, 59), _group("Feedin", 8, 0, 23, 59)]
+    assert _spans(remove_force_charge(current)) == [("SelfUse", 0, 0, 5, 59), ("Feedin", 8, 0, 23, 59)]
 
 
 def test_merge_drops_disabled_and_invalid_slots() -> None:
@@ -61,7 +95,7 @@ def test_merge_drops_disabled_and_invalid_slots() -> None:
 
 def test_merge_splits_midnight_window() -> None:
     merged = merge_force_charge([], _window(start=time(23, 0), end=time(2, 0)))
-    assert [(g.start_hour, g.end_hour) for g in merged] == [(23, 23), (0, 2)]
+    assert [(g.start_hour, g.end_hour) for g in merged] == [(0, 2), (23, 23)]
 
 
 def test_target_below_min_soc_rejected() -> None:
@@ -70,7 +104,7 @@ def test_target_below_min_soc_rejected() -> None:
 
 
 def test_too_many_groups_rejected() -> None:
-    current = [_group("SelfUse", h, 0, h, 59) for h in range(8)]
+    current = [_group("SelfUse" if h % 2 else "Feedin", h, 0, h, 59) for h in range(10, 18)]
     with pytest.raises(ScheduleMergeError):
         merge_force_charge(current, _window(), max_groups=8)
 
@@ -92,7 +126,7 @@ def test_split_window_rejects_zero_length() -> None:
 
 
 def test_payload_shape_matches_api() -> None:
-    payload = merge_force_charge(CURRENT, _window())[0].model_dump(by_alias=True, exclude_none=True)
+    payload = merge_force_charge(CURRENT, _window())[1].model_dump(by_alias=True, exclude_none=True)
     assert set(payload) == {
         "enable", "startHour", "startMinute", "endHour", "endMinute",
         "workMode", "minSocOnGrid", "fdSoc", "fdPwr", "maxSoc",

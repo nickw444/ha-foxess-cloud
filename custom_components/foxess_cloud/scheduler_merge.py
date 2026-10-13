@@ -86,14 +86,68 @@ def kept_groups(current: list[SchedulerGroup]) -> list[SchedulerGroup]:
     ]
 
 
+def _start(g: SchedulerGroup) -> int:
+    return g.start_hour * 60 + g.start_minute
+
+
+def _end(g: SchedulerGroup) -> int:
+    return g.end_hour * 60 + g.end_minute
+
+
+def _with_span(g: SchedulerGroup, start: int, end: int) -> SchedulerGroup:
+    sh, sm = divmod(start, 60)
+    eh, em = divmod(end, 60)
+    return g.model_copy(update={"start_hour": sh, "start_minute": sm, "end_hour": eh, "end_minute": em})
+
+
+def find_overlaps(groups: list[SchedulerGroup]) -> list[tuple[int, int]]:
+    """Index pairs of enabled groups whose time spans overlap (start and end minutes inclusive)."""
+
+    active = [(i, _start(g), _end(g)) for i, g in enumerate(groups) if g.enable == 1]
+    return [
+        (i, j)
+        for x, (i, a1, b1) in enumerate(active)
+        for (j, a2, b2) in active[x + 1 :]
+        if a1 <= b2 and a2 <= b1
+    ]
+
+
+def subtract_windows(groups: list[SchedulerGroup], windows: list[tuple[int, int]]) -> list[SchedulerGroup]:
+    """Cut the minute ranges in `windows` out of every group, splitting groups as needed."""
+
+    result = list(groups)
+    for w_start, w_end in windows:
+        trimmed: list[SchedulerGroup] = []
+        for g in result:
+            a, b = _start(g), _end(g)
+            if b < w_start or a > w_end:
+                trimmed.append(g)
+                continue
+            if a < w_start:
+                trimmed.append(_with_span(g, a, w_start - 1))
+            if b > w_end:
+                trimmed.append(_with_span(g, w_end + 1, b))
+        result = trimmed
+    return result
+
+
 def merge_force_charge(
     current: list[SchedulerGroup],
     window: ForceChargeWindow,
     max_groups: int = DEFAULT_MAX_GROUPS,
 ) -> list[SchedulerGroup]:
-    """Replace existing force-charge groups with `window`, keeping every other enabled group."""
+    """Replace existing force-charge groups with `window`, keeping every other enabled group.
 
-    merged = window_to_groups(window) + kept_groups(current)
+    The kept groups are trimmed around the window: the FoxESS app refuses overlapping
+    periods, and a ForceCharge window written on top of a 00:00-23:59 SelfUse group did not
+    run on a real inverter. The result is sorted by start time.
+    """
+
+    charge = window_to_groups(window)
+    kept = subtract_windows(_rejoin(kept_groups(current), current), [(_start(g), _end(g)) for g in charge])
+    merged = sorted(charge + kept, key=_start)
+    if find_overlaps(merged):
+        raise ScheduleMergeError("merged schedule still has overlapping groups")
     if len(merged) > max_groups:
         raise ScheduleMergeError(
             f"merged schedule needs {len(merged)} groups but the inverter supports {max_groups}"
@@ -118,15 +172,46 @@ def selfuse_all_day(min_soc_on_grid: int = 10) -> SchedulerGroup:
     )
 
 
+def _same_settings(a: SchedulerGroup, b: SchedulerGroup) -> bool:
+    keys = ("enable", "work_mode", "min_soc_on_grid", "fd_soc", "fd_pwr", "max_soc")
+    return all(getattr(a, k) == getattr(b, k) for k in keys)
+
+
+def _rejoin(kept: list[SchedulerGroup], current: list[SchedulerGroup]) -> list[SchedulerGroup]:
+    """Re-join groups that were split around a force-charge window.
+
+    Two kept groups with identical settings are merged when the gap between them is fully
+    covered by force-charge groups of `current`, so removing (or moving) the window restores
+    e.g. a single 00:00-23:59 SelfUse group.
+    """
+
+    fc_minutes: set[int] = set()
+    for g in current:
+        if g.enable == 1 and g.work_mode in FORCE_CHARGE_MODES:
+            fc_minutes.update(range(_start(g), _end(g) + 1))
+    out: list[SchedulerGroup] = []
+    for g in sorted(kept, key=_start):
+        if out:
+            prev = out[-1]
+            gap = range(_end(prev) + 1, _start(g))
+            if _same_settings(prev, g) and all(m in fc_minutes for m in gap):
+                out[-1] = _with_span(prev, _start(prev), max(_end(prev), _end(g)))
+                continue
+        out.append(g)
+    return out
+
+
 def remove_force_charge(current: list[SchedulerGroup]) -> list[SchedulerGroup]:
     """Drop force-charge groups (and empty slots), keeping every other enabled group.
+
+    Groups that were split around a force-charge window are joined again (see ``_rejoin``).
 
     If nothing would remain, return a single 00:00-23:59 SelfUse group instead of an
     empty list: an empty ``groups`` payload is accepted by the API but does not clear
     the inverter schedule (see issue #6), which would leave the ForceCharge window active.
     """
 
-    remaining = kept_groups(current)
+    remaining = _rejoin(kept_groups(current), current)
     if remaining:
         return remaining
     min_soc = next((g.min_soc_on_grid for g in current if g.enable == 1), 10)
