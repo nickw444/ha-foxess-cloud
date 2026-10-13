@@ -34,3 +34,99 @@ set_schedule:
           workMode: Feedin
           fdSoc: 30
           fdPwr: 1000
+
+set_force_charge:
+  name: Set force-charge window
+  description: >-
+    Add or replace a ForceCharge window while keeping every other enabled scheduler group
+    (e.g. a 00:00-23:59 SelfUse base). The current schedule is read from the inverter first;
+    existing ForceCharge groups are replaced, empty/"Invalid" slots are dropped. Windows that
+    cross midnight are split in two. Unlike set_schedule, other groups are not overwritten.
+  fields:
+    device_sn:
+      name: Device serial number
+      description: Target inverter serial number.
+      required: true
+      selector:
+        text:
+      example: ABC1234567
+    start_time:
+      name: Start time
+      description: Window start (inverter local time).
+      required: true
+      selector:
+        time:
+      example: "06:30:00"
+    end_time:
+      name: End time
+      description: Window end (inverter local time).
+      required: true
+      selector:
+        time:
+      example: "07:59:00"
+    target_soc:
+      name: Target SoC
+      description: Charging stops at this SoC (fdSoc). Must be >= min SoC on grid.
+      required: true
+      selector:
+        number:
+          min: 10
+          max: 100
+          unit_of_measurement: "%"
+      example: 35
+    power:
+      name: Charge power
+      description: Maximum grid charge power (fdPwr) in W.
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 30000
+          step: 50
+          unit_of_measurement: W
+      example: 1500
+    min_soc_on_grid:
+      name: Min SoC on grid
+      description: Defaults to the minSocOnGrid of the enabled SelfUse group, or 10.
+      required: false
+      selector:
+        number:
+          min: 10
+          max: 100
+          unit_of_measurement: "%"
+    max_soc:
+      name: Max SoC
+      description: maxSoc for the new group.
+      required: false
+      default: 100
+      selector:
+        number:
+          min: 10
+          max: 100
+          unit_of_measurement: "%"
+    work_mode:
+      name: Work mode
+      description: ForceCharge, or ForceCharge(BAT) on inverters that report it.
+      required: false
+      default: ForceCharge
+      selector:
+        select:
+          options:
+            - ForceCharge
+            - ForceCharge(BAT)
+
+clear_force_charge:
+  name: Clear force-charge windows
+  description: >-
+    Remove all ForceCharge groups while keeping every other enabled scheduler group.
+    If no other group remains, a single 00:00-23:59 SelfUse group is written instead of an
+    empty list (an empty list does not clear the inverter schedule, see issue #6).
+    Useful after the cheap-tariff window so a one-off charge does not repeat the next day.
+  fields:
+    device_sn:
+      name: Device serial number
+      description: Target inverter serial number.
+      required: true
+      selector:
+        text:
+      example: ABC1234567

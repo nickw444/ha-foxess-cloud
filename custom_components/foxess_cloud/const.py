@@ -19,6 +19,8 @@ PLATFORMS: Final = [
 ]
 
 SERVICE_SET_SCHEDULE: Final = "set_schedule"
+SERVICE_SET_FORCE_CHARGE: Final = "set_force_charge"
+SERVICE_CLEAR_FORCE_CHARGE: Final = "clear_force_charge"
 
 CONF_API_KEY: Final = "api_key"
 CONF_DEVICE_SN: Final = "device_sn"
